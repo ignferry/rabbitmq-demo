@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.10-management-alpine
+    container_name: rabbitmq
+    ports:
+      - 5672:5672     # Message Queue
+      - 15672:15672   # Management UI
+    volumes:
+      - "./data:/var/lib/rabbitmq/mnesia/"
+  producer:
+    container_name: rabbitmq-producer
+    build:
+      context: ./producer
+    environment:
+      - PORT=3000
+    ports:
+      - 3000:3000
+    depends_on:
+      - rabbitmq
+  node-consumer-1:
+    container_name: node-consumer-1
+    build:
+      context: ./consumer
+    environment:
+      - QUEUE_NAME=consumer-one-queue
+      - BINDING_PATTERN=consumer.node.#
+      - ROUTING_KEY=consumer.node.one
+  node-consumer-2:
+    container_name: node-consumer-2
+    build:
+      context: ./consumer
+    environment:
+      - QUEUE_NAME=consumer-two-queue
+      - BINDING_PATTERN=consumer.node.*
+      - ROUTING_KEY=consumer.node.two
